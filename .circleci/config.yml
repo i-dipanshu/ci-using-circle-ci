@@ -14,17 +14,26 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
+            BUILD_TRIGGERED=false
+
+            # Changes detected in dev directory
             if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "dev/") ]]; then
-              # Changes detected in dev directory
+              $BUILD_TRIGGERED=true
               TAG=dev-0.1.$CIRCLE_BUILD_NUM
               IMAGE_NAME=$DOCKER_USER/django-app-circleci-dev:$TAG
               docker build -t $IMAGE_NAME dev
-            elif [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "prod/") ]]; then
-              # Changes detected in prod directory
+            fi
+
+            # Changes detected in prod directory
+            if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "prod/") ]]; then
+              $BUILD_TRIGGERED=true
               TAG=prod-0.1.$CIRCLE_BUILD_NUM
               IMAGE_NAME=$DOCKER_USER/django-app-circleci-prod:$TAG
               docker build -t $IMAGE_NAME prod
-            else
+            fi
+
+            # No change in Source code
+            if [[$BUILD_TRIGGERED==false]]
               echo "No relevant changes detected in dev or prod, skipping the build."
               exit 0
             fi
@@ -35,7 +44,7 @@ jobs:
 workflows:
   build_and_push:
     jobs:
-      - build_and_push
+      - build_and_push:
           filters:
             branches:
               only:

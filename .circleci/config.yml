@@ -32,14 +32,12 @@ jobs:
               docker build -t $IMAGE_NAME prod
             fi
 
-            # No change in Source code
             if ! [[ $BUILD_TRIGGERED ]]; then
               echo "No relevant changes detected in dev or prod, skipping the build."
-              exit 0
+            else
+              echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+              docker push $IMAGE_NAME
             fi
-
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $IMAGE_NAME
 
 workflows:
   build_and_push_docker_image:

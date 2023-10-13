@@ -33,7 +33,7 @@ jobs:
             fi
 
             # No change in Source code
-            if [[$BUILD_TRIGGERED==false]]; then
+            if ! [[ $BUILD_TRIGGERED ]]; then
               echo "No relevant changes detected in dev or prod, skipping the build."
               exit 0
             fi

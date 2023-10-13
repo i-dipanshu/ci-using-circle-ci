@@ -14,18 +14,18 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
-            if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "src-1/") ]]; then
-              # Changes detected in src-1 directory
-              TAG=src-1-0.1.$CIRCLE_BUILD_NUM
-              IMAGE_NAME=$DOCKER_USER/django-app-circleci-src-1:$TAG
-              docker build -t $IMAGE_NAME src-1
-            elif [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "src-2/") ]]; then
-              # Changes detected in src-2 directory
-              TAG=src-2-0.1.$CIRCLE_BUILD_NUM
-              IMAGE_NAME=$DOCKER_USER/django-app-circleci-src-2:$TAG
-              docker build -t $IMAGE_NAME src-2
+            if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "dev/") ]]; then
+              # Changes detected in dev directory
+              TAG=dev-0.1.$CIRCLE_BUILD_NUM
+              IMAGE_NAME=$DOCKER_USER/django-app-circleci-dev:$TAG
+              docker build -t $IMAGE_NAME dev
+            elif [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "prod/") ]]; then
+              # Changes detected in prod directory
+              TAG=prod-0.1.$CIRCLE_BUILD_NUM
+              IMAGE_NAME=$DOCKER_USER/django-app-circleci-prod:$TAG
+              docker build -t $IMAGE_NAME prod
             else
-              echo "No relevant changes detected in src-1 or src-2, skipping the build."
+              echo "No relevant changes detected in dev or prod, skipping the build."
               exit 0
             fi
 
@@ -33,7 +33,7 @@ jobs:
             docker push $IMAGE_NAME
 
 workflows:
-  build_push_and_deploy:
+  build_and_push:
     jobs:
       - build_and_push:
           filters:

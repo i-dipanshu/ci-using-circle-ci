@@ -1,0 +1,46 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@1.0
+
+jobs:
+  build:
+    executor: python/default
+    steps:
+      - checkout
+      - python/install-packages:
+          packages: pip
+  
+  push:
+    executor: python/default
+    steps:
+      - aws-ecr/build-and-push-image:
+          account-url: $AWS_ECR_ACCOUNT_URL
+          repo: django-app-circleci
+          tag: 0.1.$CIRCLE_BUILD_NUM
+      - aws-ecr/install-aws-cli:
+          version: 2
+      - run:
+          name: Push Docker Image
+          command: |
+            docker push $AWS_ECR_ACCOUNT_URL/django-app-circleci:0.1.$CIRCLE_BUILD_NUM
+
+  deploy:
+    executor: heroku/default
+    steps:
+      - checkout
+      - run:
+          name: Deploy to Heroku
+          command: |
+            # Add your deployment commands here
+
+workflows:
+  build_push_and_deploy:
+    jobs:
+      - build
+      - push:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - push

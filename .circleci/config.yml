@@ -16,7 +16,7 @@ jobs:
           command: |
             function build_and_push_image {
               local directory="$1"
-              local tag="$2"
+              local tag="$directory-0.1.$CIRCLE_BUILD_NUM"
               local docker_image_name="$DOCKER_USER/django-app-circleci-$directory:$tag"
 
               if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "$directory/") ]]; then
@@ -30,10 +30,10 @@ jobs:
             }
 
             # Build and push image for "dev" directory
-            build_and_push_image "dev" "dev-0.1.$CIRCLE_BUILD_NUM"
+            build_and_push_image "dev" 
 
             # Build and push image for "prod" directory
-            build_and_push_image "prod" "prod-0.1.$CIRCLE_BUILD_NUM"
+            build_and_push_image "prod"
 
 
 workflows:

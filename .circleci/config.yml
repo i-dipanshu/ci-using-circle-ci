@@ -1,0 +1,22 @@
+version: 2.1
+
+jobs:
+  build_and_push:
+    docker:
+      - image: cimg/python:3.12.0
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+      - run: |
+          TAG=0.1.$CIRCLE_BUILD_NUM
+          IMAGE_NAME = ${DOCKERUSER}/django-app-circleci:$TAG
+          docker build -t  $IMAGE_NAME .
+          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+          docker push $IMAGE_NAME
+
+workflows:
+  build_push_and_deploy:
+    jobs:
+      - build_and_push

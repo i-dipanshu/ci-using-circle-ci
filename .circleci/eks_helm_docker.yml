@@ -1,0 +1,31 @@
+version: 2.1
+executors:
+  docker-executor:
+    docker:
+      - image: docker:19.03.12
+
+jobs:
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Build Docker Image
+          command: docker build -t my-app .
+  deploy:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Configure AWS CLI
+          command: |
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set default.region $AWS_DEFAULT_REGION
+      - run:
+          name: Configure kubectl
+          command: kubectl config use-context my-eks-cluster
+      - run:
+          name: Deploy Helm Chart
+          command: |
+            helm upgrade --install my-app ./path/to/helm/chart

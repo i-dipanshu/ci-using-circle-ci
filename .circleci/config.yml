@@ -14,30 +14,27 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
-            BUILD_TRIGGERED=false
+            function build_and_push_image {
+              local directory="$1"
+              local tag="$2"
+              local docker_image_name="$DOCKER_USER/django-app-circleci-$directory:$tag"
 
-            # Changes detected in dev directory
-            if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "dev/") ]]; then
-              $BUILD_TRIGGERED=true
-              TAG=dev-0.1.$CIRCLE_BUILD_NUM
-              IMAGE_NAME=$DOCKER_USER/django-app-circleci-dev:$TAG
-              docker build -t $IMAGE_NAME dev
-            fi
+              if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "$directory/") ]]; then
+                docker build -t "$docker_image_name" "$directory"
+    
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                docker push "$docker_image_name"
+              else
+                echo "No relevant changes detected in $directory, skipping the build."
+              fi
+            }
 
-            # Changes detected in prod directory
-            if [[ -n $(git diff --name-only $CIRCLE_SHA1 $CIRCLE_SHA1^ | grep "prod/") ]]; then
-              $BUILD_TRIGGERED=true
-              TAG=prod-0.1.$CIRCLE_BUILD_NUM
-              IMAGE_NAME=$DOCKER_USER/django-app-circleci-prod:$TAG
-              docker build -t $IMAGE_NAME prod
-            fi
+            # Build and push image for "dev" directory
+            build_and_push_image "dev" "dev-0.1.$CIRCLE_BUILD_NUM"
 
-            if ! [[ $BUILD_TRIGGERED ]]; then
-              echo "No relevant changes detected in dev or prod, skipping the build."
-            else
-              echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-              docker push $IMAGE_NAME
-            fi
+            # Build and push image for "prod" directory
+            build_and_push_image "prod" "prod-0.1.$CIRCLE_BUILD_NUM"
+
 
 workflows:
   build_and_push_docker_image:

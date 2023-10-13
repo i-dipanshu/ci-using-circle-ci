@@ -33,7 +33,7 @@ jobs:
             fi
 
             # No change in Source code
-            if [[$BUILD_TRIGGERED==false]]
+            if [[$BUILD_TRIGGERED==false]]; then
               echo "No relevant changes detected in dev or prod, skipping the build."
               exit 0
             fi
@@ -42,7 +42,7 @@ jobs:
             docker push $IMAGE_NAME
 
 workflows:
-  build_and_push:
+  build_and_push_docker_image:
     jobs:
       - build_and_push:
           filters:
